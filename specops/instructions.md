@@ -4,7 +4,7 @@ This file defines how a host agent must run SpecOps.
 
 ## Goal
 
-Start from a Markdown specification, convert it into a compiled JSON draft, resolve ambiguity from that JSON state, and generate schema-grounded failing tests in the target repository's native test stack.
+Start from a Markdown specification, convert it into a compiled JSON draft, resolve ambiguity from that JSON state, and generate context-appropriate artifacts in the target repository.
 
 ## Required behavior
 
@@ -13,8 +13,9 @@ Start from a Markdown specification, convert it into a compiled JSON draft, reso
 3. Ask targeted clarifying questions for every unresolved ambiguity.
 4. Maintain a working JSON draft state that is progressively refined.
 5. Validate the final JSON against `schemas/compiled-spec-schema.json`.
-6. Detect repository language/framework before test generation.
-7. Ask for explicit confirmation before writing tests into the target repository.
+6. Infer the artifact set from user use case + repository context.
+7. Detect repository language/framework before generating code artifacts.
+8. Ask for explicit confirmation before writing artifacts into the target repository.
 
 ## Workflow
 
@@ -64,30 +65,43 @@ If any gate fails, continue clarification.
 - Generate a JSON object and validate against `schemas/compiled-spec-schema.json`.
 - If invalid, explain validation errors and re-engage the user to repair missing/invalid parts.
 
-### Phase 7: Repo-Aware Test Generation (LLM-driven)
+### Phase 7: Context-Aware Artifact Planning (LLM-driven)
 
-After user approval, generate failing tests directly via the LLM in the target repository.
+Before writing files, build an artifact plan using `prompts/context_aware_artifact_planning.txt`.
 
-Use `prompts/repo_aware_test_generation.txt` and follow these rules:
+Plan from:
+1. User use case and delivery goal.
+2. Repository language/framework and existing conventions.
+3. Risk profile from compiled scenarios.
 
-1. Inspect repository signals to detect language/framework:
-	- manifests (`package.json`, `pyproject.toml`, `pom.xml`, `go.mod`, etc.)
-	- existing test directories/files
-	- CI workflows and test commands
-2. Prefer existing test framework conventions already present in the repo.
-3. If multiple frameworks are possible, ask the user which one to use.
-4. Generate failing tests that map `scenarios[]` from the compiled spec.
-5. Place tests in idiomatic paths for the detected stack.
-6. Do not generate implementation code in this phase.
+Possible artifacts include (only when relevant):
+- failing tests (unit/integration/e2e)
+- API contract artifacts (OpenAPI/GraphQL schema snippets)
+- test fixtures or seed data
+- migration/compatibility notes
+- agent handoff summaries/checklists
 
-### Phase 8: Final Handoff
+Ask user to approve the artifact plan before generation.
+
+### Phase 8: Context-Aware Artifact Generation (LLM-driven)
+
+After plan approval, generate artifacts using `prompts/context_aware_artifact_generation.txt`.
+
+Rules:
+1. Reuse the repository's existing stack and patterns.
+2. Generate only approved artifacts.
+3. Keep generated tests failing by design until implementation.
+4. Do not generate production implementation code in this phase.
+5. Minimize scope to requirements in compiled spec.
+
+### Phase 9: Final Handoff
 
 Provide:
 
 - location of compiled spec
-- generated test file paths
-- concise summary of behavior covered by the generated tests
-- suggested next step: assign coding agent to make tests pass
+- generated artifact file paths
+- concise summary of behavior/contract coverage by artifact
+- suggested next step: assign coding agent to implement behavior required by the approved spec/artifacts
 
 ## Invalid-spec fallback
 

@@ -6,14 +6,14 @@ The workflow is markdown-first:
 1. Start with a feature spec in Markdown.
 2. Have the LLM convert Markdown into Compiled Spec JSON.
 3. Run adversarial clarification until ambiguity is removed.
-4. Instruct the LLM to generate failing tests directly in the target repository using its native language/framework.
+4. Instruct the LLM to plan and generate context-appropriate artifacts from user use case + repository context.
 
 ![](assets/info.png)
 
 ## What This Skill Produces
 
 - A validated `compiled-spec.json` contract
-- Failing tests generated in the target repository's existing test stack
+- Context-appropriate artifact set generated in the target repository (for example failing tests, API contract files, fixtures, handoff docs)
 - A cleaner handoff to coding agents (implement to satisfy tests)
 
 ## Repository Layout
@@ -38,7 +38,7 @@ The workflow is markdown-first:
 Tell your agent to use SpecOps for requirements compilation, for example:
 
 ```text
-Use the SpecOps skill for this feature. Start from Markdown spec, compile JSON, clarify ambiguities, then generate failing tests in this repo's native test framework.
+Use the SpecOps skill for this feature. Start from Markdown spec, compile JSON, clarify ambiguities, then plan and generate context-appropriate artifacts for this repo.
 ```
 
 The agent should follow [specops/instructions.md](specops/instructions.md).
@@ -102,35 +102,45 @@ The agent should use [specops/prompts/final_spec_formatter.txt](specops/prompts/
 
 Save this as your working contract (for example `compiled-spec.json` in your target repository).
 
-### Step 7: Generate failing tests from compiled spec
+### Step 7: Plan and generate context-aware artifacts
 
-Use repo-aware test generation instructions in [specops/prompts/repo_aware_test_generation.txt](specops/prompts/repo_aware_test_generation.txt).
+Use context-aware artifact planning instructions in [specops/prompts/context_aware_artifact_planning.txt](specops/prompts/context_aware_artifact_planning.txt).
 
-The LLM must:
-- detect the repository's language and test framework from repo evidence
-- reuse existing test conventions (paths, naming, assertion style, fixtures)
-- create failing tests for each scenario in the compiled spec
-- avoid implementation code changes in this phase
+The LLM must first:
+- detect repository stack and conventions from repo evidence
+- propose a minimal useful artifact set for this use case
+- include artifact paths and acceptance criteria
+- request user approval before writing files
+
+Then generate approved artifacts using [specops/prompts/context_aware_artifact_generation.txt](specops/prompts/context_aware_artifact_generation.txt).
+
+Typical artifact types (use-case dependent):
+- failing tests (unit/integration/e2e)
+- API contract artifacts (OpenAPI/GraphQL snippets)
+- test fixtures or seed data
+- migration/compatibility notes
+- handoff checklist/summary
 
 Recommended prompt:
 
 ```text
-Generate failing tests from the compiled spec in this repository's existing test framework. Detect the stack from the repo and follow local test conventions.
+Build an artifact plan from the compiled spec and this repository context. Propose only relevant artifacts, ask for approval, then generate them using local conventions.
 ```
 
 ### Step 8: Review generated artifacts
 
 Confirm all artifacts match the final contract:
-- scenario coverage in tests
+- scenario coverage across artifacts
 - status/error behavior representation
+- generated files match approved artifact plan
 
 If mismatched, fix the Markdown/JSON spec first, then regenerate.
 
 ### Step 9: Handoff to coding agent
 
 When spec and generated artifacts are accepted:
-- commit/publish the compiled spec and failing tests
-- assign coding agent to make tests pass
+- commit/publish the compiled spec and approved artifacts
+- assign coding agent to implement behavior required by the spec and artifacts
 - require implementation PR to preserve contract semantics
 
 ## Recommended Operator Prompts (Copy/Paste)
@@ -148,7 +158,7 @@ Run the adversarial clarification loop until no ambiguity remains, then produce 
 ```
 
 ```text
-After I approve file writes, detect this repository's stack and generate failing tests from the compiled spec using the existing test framework.
+After I approve the artifact plan, generate the approved artifacts from the compiled spec using this repository's existing conventions.
 ```
 
 ## Common Pitfalls
@@ -156,7 +166,8 @@ After I approve file writes, detect this repository's stack and generate failing
 - Skipping Markdown confirmation before JSON conversion
 - Generating artifacts from an unvalidated or incomplete JSON draft
 - Letting ambiguous actor permissions remain unresolved
-- Forcing Jest/PyTest when the target repository uses a different language/framework
+- Generating artifacts before explicit plan approval
+- Producing artifact types that are not relevant to the use case
 - Treating generated tests as implementation (they are intentionally failing)
 
 ## Skill Manifest

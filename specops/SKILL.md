@@ -1,7 +1,7 @@
 ---
 name: specops
-description: Adversarial requirements engineering skill that compiles ambiguous feature requests into a validated JSON spec, then instructs the LLM to generate failing tests in the target repository's native language/framework. Use when users ask to define, clarify, or formalize software requirements before implementation.
-compatibility: Requires file read/write access to the target repository where tests will be generated.
+description: Adversarial requirements engineering skill that compiles ambiguous feature requests into a validated JSON spec, then instructs the LLM to generate context-appropriate artifacts in the target repository's native stack. Use when users ask to define, clarify, or formalize software requirements before implementation.
+compatibility: Requires file read/write access to the target repository where artifacts will be generated.
 metadata:
   author: namuan
   version: "0.1.0"
@@ -23,7 +23,8 @@ SpecOps is a shift-left specification skill. It helps an agent turn vague requir
 2. Start with a Markdown specification using `prompts/spec_markdown_template.md`.
 3. Convert the Markdown into a compiled-spec JSON draft using `prompts/markdown_to_json_compilation.txt`.
 4. Resolve ambiguity and produce a final compiled spec that validates against [compiled-spec-schema.json](./schemas/compiled-spec-schema.json).
-5. Only after explicit user approval, detect the target repository language/framework and generate failing tests directly in that native test stack.
+5. Build and confirm a context-aware artifact plan from user use case + repository context.
+6. Only after explicit user approval, generate the approved artifacts in the target repository's native stack.
 
 ## Safety and trust requirements
 
@@ -34,7 +35,7 @@ SpecOps is a shift-left specification skill. It helps an agent turn vague requir
 ## Outputs
 
 - `compiled-spec.json` (schema-valid)
-- Failing test suite generated in the target repository's existing language/framework
+- Context-appropriate artifact set generated in the target repository (for example failing tests, API contract files, fixtures, handoff summary)
 - Agent-optimized Markdown handoff summary
 
 See [instructions.md](./instructions.md) for strict execution details.
