@@ -6,6 +6,12 @@ This file defines how a host agent must run SpecOps.
 
 Start from a Markdown specification, convert it into a compiled JSON draft, resolve ambiguity from that JSON state, and generate context-appropriate artifacts in the target repository.
 
+## Triggering Mode
+
+- Skill may be triggered as `/specops`.
+- One-shot fast path: `/specops <spec-markdown-file>`.
+- In one-shot mode, default deliverable is failing executable contract tests generated in the current project's native test stack.
+
 ## Required behavior
 
 1. Stay in requirements mode until the spec is complete.
@@ -18,6 +24,18 @@ Start from a Markdown specification, convert it into a compiled JSON draft, reso
 8. Ask for explicit confirmation before writing artifacts into the target repository.
 
 ## Workflow
+
+### Fast Path: Single Prompt Contract Tests
+
+When input is `/specops <spec-markdown-file>`, run this compressed flow using `prompts/single_trigger_contract_tests.txt`:
+
+1. Read the Markdown spec file.
+2. Compile and validate `compiled-spec.json`.
+3. Evaluate repository technology and existing test conventions.
+4. Generate failing executable contract tests in native framework.
+5. Report generated file paths + coverage summary.
+
+If blocked by ambiguity or missing repo signals, ask minimal clarifying questions and continue.
 
 ### Phase 1: Initialization
 

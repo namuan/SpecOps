@@ -11,6 +11,14 @@ metadata:
 
 SpecOps is a shift-left specification skill. It helps an agent turn vague requirements into a machine-checkable contract before any implementation coding starts.
 
+## Triggering
+
+- Trigger this skill with `/specops`.
+- Preferred one-shot invocation format:
+  - `/specops <path-to-spec-markdown-file>`
+
+When invoked with a Markdown file path, run end-to-end toward failing executable contract tests in the current project while respecting repository technology and conventions.
+
 ## When to use this skill
 
 - The user asks to define a new feature but requirements are still ambiguous.
@@ -25,6 +33,18 @@ SpecOps is a shift-left specification skill. It helps an agent turn vague requir
 4. Resolve ambiguity and produce a final compiled spec that validates against [compiled-spec-schema.json](./schemas/compiled-spec-schema.json).
 5. Build and confirm a context-aware artifact plan from user use case + repository context.
 6. Only after explicit user approval, generate the approved artifacts in the target repository's native stack.
+
+## Single-Prompt Contract Test Mode
+
+If user triggers `/specops <spec-markdown-file>`, default to this mode:
+
+1. Load Markdown spec file from provided path.
+2. Compile and validate `compiled-spec.json`.
+3. Evaluate current project technology (language/framework/test stack) from repository signals.
+4. Generate failing executable contract tests in the detected native stack.
+5. Return generated file paths + scenario coverage summary.
+
+Only ask additional questions if blocked by ambiguity or missing repository signals.
 
 ## Safety and trust requirements
 

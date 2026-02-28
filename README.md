@@ -31,6 +31,44 @@ The workflow is markdown-first:
 - Agent environment that supports Agent Skills (loads `SKILL.md`)
 - Permission to read and write files in the target repository
 
+## Install Skill Symlink
+
+Run from this repository root:
+
+```bash
+./setup-specops-skill-symlink.sh
+```
+
+This creates:
+
+- `~/.agents/skills/specops` -> `<this-repo>/specops`
+
+After this, the skill can be triggered with:
+
+```text
+/specops
+```
+
+## One-Shot Usage (Recommended)
+
+If you already have a Markdown spec file, run the whole flow from one trigger:
+
+```text
+/specops path/to/spec.md
+```
+
+Expected behavior:
+1. Reads the Markdown spec file.
+2. Compiles it into `compiled-spec.json`.
+3. Validates the compiled spec.
+4. Evaluates current project technology (language/framework/test stack).
+5. Generates failing executable contract tests in the project's native test framework.
+6. Returns created file paths and scenario coverage summary.
+
+This behavior is defined in:
+
+- [specops/prompts/single_trigger_contract_tests.txt](specops/prompts/single_trigger_contract_tests.txt)
+
 ## Detailed Step-by-Step Usage
 
 ### Step 1: Activate SpecOps in your agent session
@@ -111,6 +149,8 @@ The LLM must first:
 - propose a minimal useful artifact set for this use case
 - include artifact paths and acceptance criteria
 - request user approval before writing files
+
+For contract-test-first use cases, ensure tests are executable in the existing project framework and remain failing until implementation exists.
 
 Then generate approved artifacts using [specops/prompts/context_aware_artifact_generation.txt](specops/prompts/context_aware_artifact_generation.txt).
 
