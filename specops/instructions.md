@@ -4,15 +4,17 @@ This file defines how a host agent must run SpecOps.
 
 ## Goal
 
-Convert an initial, possibly vague feature request into a compiled, schema-valid contract and optional generated artifacts.
+Start from a Markdown specification, convert it into a compiled JSON draft, resolve ambiguity from that JSON state, and generate schema-grounded failing tests in the target repository's native test stack.
 
 ## Required behavior
 
 1. Stay in requirements mode until the spec is complete.
-2. Ask targeted clarifying questions for every unresolved ambiguity.
-3. Maintain a working draft state that is progressively refined.
-4. Validate the final JSON against `schemas/compiled-spec-schema.json`.
-5. Ask for explicit confirmation before running any write-capable script.
+2. Require or construct a Markdown spec before JSON compilation.
+3. Ask targeted clarifying questions for every unresolved ambiguity.
+4. Maintain a working JSON draft state that is progressively refined.
+5. Validate the final JSON against `schemas/compiled-spec-schema.json`.
+6. Detect repository language/framework before test generation.
+7. Ask for explicit confirmation before writing tests into the target repository.
 
 ## Workflow
 
@@ -21,18 +23,20 @@ Convert an initial, possibly vague feature request into a compiled, schema-valid
 - Briefly explain SpecOps to the user.
 - State that you will ask clarifying questions and compile a contract before coding.
 
-### Phase 2: Requirement Ingestion
+### Phase 2: Markdown Spec Ingestion
 
 - Use guidance in `prompts/initial_requirements_gather.txt`.
-- Accept bullets, user stories, raw prose, or pasted docs.
-- Normalize user input into a temporary structure:
-  - feature name
-  - actors
-  - scenarios
-  - data model constraints
-  - error/edge behavior
+- Ask the user for a Markdown spec using `prompts/spec_markdown_template.md`.
+- If the user provides prose/bullets/docs, transform it into the required Markdown template and ask for confirmation.
+- Save the confirmed Markdown as the active source of truth for this run.
 
-### Phase 3: Adversarial Clarification Loop
+### Phase 3: Markdown → JSON Draft Compilation
+
+- Use `prompts/markdown_to_json_compilation.txt` to convert the Markdown spec into a compiled-spec JSON draft.
+- The result may still be incomplete or ambiguous; treat it as a working draft.
+- Do not generate artifacts yet.
+
+### Phase 4: Adversarial Clarification Loop
 
 Repeat until complete:
 
@@ -42,7 +46,7 @@ Repeat until complete:
 4. Integrate the user answer into the draft state.
 5. Re-check for contradictions introduced by the new answer.
 
-### Phase 4: Completion Gate
+### Phase 5: Completion Gate
 
 Only continue when all of these are true:
 
@@ -54,28 +58,34 @@ Only continue when all of these are true:
 
 If any gate fails, continue clarification.
 
-### Phase 5: Spec Compilation
+### Phase 6: Final Spec Compilation and Validation
 
 - Use `prompts/final_spec_formatter.txt`.
 - Generate a JSON object and validate against `schemas/compiled-spec-schema.json`.
 - If invalid, explain validation errors and re-engage the user to repair missing/invalid parts.
 
-### Phase 6: Artifact Generation
+### Phase 7: Repo-Aware Test Generation (LLM-driven)
 
-After user approval, run one or more scripts in `scripts/generators/` with `--spec <compiled-spec.json>`:
+After user approval, generate failing tests directly via the LLM in the target repository.
 
-- `generate_jest.js`
-- `generate_pytest.py`
-- `generate_openapi.py`
+Use `prompts/repo_aware_test_generation.txt` and follow these rules:
 
-Each script writes files and should be treated as filesystem-modifying.
+1. Inspect repository signals to detect language/framework:
+	- manifests (`package.json`, `pyproject.toml`, `pom.xml`, `go.mod`, etc.)
+	- existing test directories/files
+	- CI workflows and test commands
+2. Prefer existing test framework conventions already present in the repo.
+3. If multiple frameworks are possible, ask the user which one to use.
+4. Generate failing tests that map `scenarios[]` from the compiled spec.
+5. Place tests in idiomatic paths for the detected stack.
+6. Do not generate implementation code in this phase.
 
-### Phase 7: Final Handoff
+### Phase 8: Final Handoff
 
 Provide:
 
 - location of compiled spec
-- generated artifact file paths
+- generated test file paths
 - concise summary of behavior covered by the generated tests
 - suggested next step: assign coding agent to make tests pass
 
@@ -84,8 +94,9 @@ Provide:
 If validation fails and user cannot answer immediately:
 
 1. Save draft marked as incomplete.
-2. List unresolved items.
-3. Ask whether to continue now or pause.
+2. Save the latest Markdown and JSON draft snapshots.
+3. List unresolved items.
+4. Ask whether to continue now or pause.
 
 ## Large specification handling
 

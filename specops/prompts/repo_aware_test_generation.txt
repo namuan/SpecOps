@@ -1,0 +1,26 @@
+Generate failing tests from `compiled-spec.json` in the target repository's native language and test framework.
+
+Process:
+1) Detect stack from repository evidence:
+   - Build/test manifests and lockfiles
+   - Existing test files and naming patterns
+   - CI workflow test commands
+2) Choose the dominant existing test framework.
+3) If ambiguous, ask one concise clarification question before writing files.
+4) Map each compiled spec scenario (`id`, `given`, `when`, `then`) to at least one failing test case.
+5) Use existing repo conventions for:
+   - test file naming
+   - folder placement
+   - assertion style
+   - fixtures/utilities
+6) Keep tests failing by design (red phase):
+   - assert expected behavior contract
+   - do not add production implementation code
+7) Produce a summary with:
+   - detected stack and rationale
+   - file paths created/updated
+   - scenario coverage matrix
+
+Safety:
+- Do not write files without explicit user approval.
+- Do not invent requirements not present in compiled spec.

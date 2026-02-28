@@ -1,4 +1,4 @@
-Convert the resolved requirement state into a strict Compiled Spec JSON.
+Convert the resolved state (Markdown-derived JSON draft + clarification updates) into a strict final Compiled Spec JSON.
 
 Rules:
 1) Output JSON only.
