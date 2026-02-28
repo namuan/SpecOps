@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: {{FEATURE_NAME}} API
+  version: {{SPEC_VERSION}}
+  description: Generated from SpecOps compiled spec.
+servers:
+  - url: /api
+paths:
+  /{{FEATURE_SLUG}}:
+    patch:
+      operationId: update{{REQUEST_SCHEMA_NAME}}
+      summary: Update {{FEATURE_NAME}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/{{REQUEST_SCHEMA_NAME}}'
+      responses:
+{{RESPONSES_BLOCK}}
+components:
+  schemas:
+{{SCHEMAS_BLOCK}}
+x-generated-by: SpecOps
+x-generated-at: {{GENERATED_AT}}
